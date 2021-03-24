@@ -12,7 +12,8 @@ function App() {
   let [repeat2, repeat_status2] = useState(["리액트란?", "장고란?"])
   let [rcnt, rcnt_status] = useState([0, 0])
   let [modal, modal_status] = useState(false)
-  let [ui,ui_status]=useState(0)// UI 클릭시 상태 저장을 위해 사용
+  let [ui, ui_status] = useState(0)// UI 클릭시 상태 저장을 위해 사용
+  let [inputValue, inputValue_status] = useState('')//inputValue처리
 
   /*
   1.리액트데이터저장방식 
@@ -34,16 +35,16 @@ function App() {
     modal_status(!modal)
   }
 
-  //리액트 일반적인 반복문
+  //리액트 일반적인 반복문 (반복문에는 key={i}를 사용해야 warning이 발생하지않는다)
   function repeatFunc() {
-    let arr=[]
-    let rcnt_deepcopy=[...rcnt]//object,array는 deepCopy해서 사용
+    let arr = []
+    let rcnt_deepcopy = [...rcnt]//object,array는 deepCopy해서 사용
 
     for (let i = 0; i < repeat2.length; i++) {
-      rcnt_deepcopy[i]+=1
+      rcnt_deepcopy[i] += 1
 
       arr.push(
-        <div className="list">
+        <div className="list" key={i}>
           <h4 onClick={showModal}>{repeat2[i]}
             <span onClick={e => { rcnt_status(rcnt_deepcopy) }}>👍</span>{rcnt[i]}
           </h4>
@@ -56,6 +57,12 @@ function App() {
       arr
     );
   }
+  //글저장
+  function registerPost() {
+    let title_deep = [...title]
+    title_deep.unshift(inputValue)//unshift배열인수가장앞에추가
+    title_status(title_deep)
+  }
 
   /* 1. return (<div></div>) 안에는 한쌍의 엘리먼트만 허용 
    *    그래서 state변동이 일어나면 그 한쌍의 엘리먼트가 갱신된다
@@ -66,23 +73,23 @@ function App() {
       <div className="black-nav">
         <div>개발 블로그</div>
       </div>
-      <button style={{display:"none"}} onClick={e => { title_status(["여자 봄 코디", "남자 여름 코디", "남자 가을 코디"]) }}>여성메뉴</button>
-      <button style={{display:"none"}} onClick={changeTitle}>어린이메뉴</button>
-      
-      {title.map((e,i)=>{
+      <button style={{ display: "none" }} onClick={e => { title_status(["여자 봄 코디", "남자 여름 코디", "남자 가을 코디"]) }}>여성메뉴</button>
+      <button style={{ display: "none" }} onClick={changeTitle}>어린이메뉴</button>
+
+      {title.map((e, i) => {
         return (
-          <div className="list">
-          <h4 onClick={()=>{ui_status(i)}}>{e} <span onClick={e => { cnt_status(cnt + 1) }}>👍</span>{cnt}</h4>
-          <p>동적인 ui_State 테스트</p>
-          <hr />
-        </div>
-        );  
+          <div className="list" key={i}>
+            <h4 onClick={() => { ui_status(i) }}>{e} <span onClick={e => { cnt_status(cnt + 1) }}>👍</span>{cnt}</h4>
+            <p>동적인 ui_State 테스트</p>
+            <hr />
+          </div>
+        );
       })}
 
-      {repeat1.map((e,i) => {
+      {repeat1.map((e, i) => {
         //map을 이용한 반복문
         return (
-          <div className="list">
+          <div className="list" key={i}>
             <h4 onClick={showModal}>{e}</h4>
             <p>for문 맵 테스트입니다</p>
             <hr />
@@ -91,8 +98,12 @@ function App() {
       })}
 
       {repeatFunc()}
-      
-      <button onClick={()=>{modal_status(!modal)}}>열기</button>
+      <div className="publish">
+        <input type="text" onChange={(e) => { inputValue_status(e.target.value) }} />
+        <button onClick={registerPost}>저장</button>
+      </div>
+
+      <button onClick={() => { modal_status(!modal) }}>열고닫기</button>
       {/* <button onClick={()=>{ui_status(0)}}>1번버튼</button>
       <button onClick={()=>{ui_status(1)}}>2번버튼</button>
       <button onClick={()=>{ui_status(2)}}>3번버튼</button> */}
@@ -100,10 +111,10 @@ function App() {
       {
         //prop전송시 전송할이름={state명} (부모->자식 컴포넌트)  
         modal === true ?
-          <Modal title_props={title} ui_props={ui}/> :
+          <Modal title_props={title} ui_props={ui} /> :
           null //텅빈 html이란 뜻, react는 if문이 아닌 삼항연산자사용 , modal은 app의 자식컴포넌트 
       }
-
+      <Profile />
     </div>
   );
 }
@@ -119,5 +130,34 @@ function Modal(props) {
       <p>상세내용</p>
     </div>
   );
+}
+
+//예전 리액트 문법 (기본 자바스크립트 Class형식..constructor등 사용)
+class Profile extends React.Component {
+  // 1.초기화 부분 필수
+  constructor() {
+    super()
+    this.state={name:"yoon",age:"31",sex:"남성"}//2.state는 constructor안에 사용한다
+  }
+
+  changeName() {
+    this.setState({name:"park"})//4.state변경시에는 this.setState()사용
+  }
+
+  //6.Arrow펑션 사용시 bind사용안해도됨
+  changeAge =()=>{
+    this.setState({age:"22"})
+  }
+
+  render() {
+    return (<div>
+      <h3>저는 {this.state.name} 입니다</h3>{/*3.state사용시에는 this.state.key명을 사용한다 */}
+      <h3>저는 {this.state.age} 살입니다</h3>
+      <h3>저는 {this.state.sex} 입니다</h3>
+      <button onClick={this.changeName.bind(this)}>이름변경버튼</button>{/*5.this.함수명.bind(this) 형태로 사용 */}
+      <button onClick={this.changeAge}>나이변경버튼</button>{/*6.Arrow펑션 사용시 bind사용안해도됨  */}
+      <button onClick={()=>{this.setState({sex:"여성"})}}>성별변경버튼</button>{/*7.이런식으로도 변경가능  */}
+    </div>)
+  }
 }
 export default App;
